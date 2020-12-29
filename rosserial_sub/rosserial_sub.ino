@@ -25,38 +25,50 @@ int empty_loop_count = 0;
 ros::NodeHandle nh;
 
 void left_motor_speed_callback(const std_msgs::Int32& s) {
-  int32_t v = (int32_t) s.data;
+  int32_t v = 1;
 
-  if (v < 0) { // forward speed
+  if (s.data < 0) { // forward speed
     digitalWrite(LEFT_DIR, HIGH);
     pwmWrite(LEFT_STEP_PIN, HALF_DUTY_CYCLE);
     pwmWrite(BUG_EXTRA_LEFT_STEP_PIN, HALF_DUTY_CYCLE);
-  } else if (v > 0) { // reverse speed
+    v = - (int32_t) s.data;
+  } else if (s.data > 0) { // reverse speed
     digitalWrite(LEFT_DIR, LOW);
     pwmWrite(LEFT_STEP_PIN, HALF_DUTY_CYCLE);
     pwmWrite(BUG_EXTRA_LEFT_STEP_PIN, HALF_DUTY_CYCLE);
+    v = (int32_t) s.data;
   } else { // Zero speed
+    digitalWrite(LEFT_DIR, LOW); // Though not needed, set to low to save power
     pwmWrite(LEFT_STEP_PIN, ZERO_DUTY_CYCLE);
     pwmWrite(BUG_EXTRA_LEFT_STEP_PIN, ZERO_DUTY_CYCLE);
+    v = 1; // Frequency cannot be 0 Hz
   }
   bool success = SetPinFrequencySafe(LEFT_STEP_PIN, v);
-  //  nh.loginfo("L_CB: ");
+  if (!success) {
+    nh.logerror("L_CB fail");
+  }
 }
 
 void right_motor_speed_callback(const std_msgs::Int32& s) {
-  int32_t v = (int32_t) s.data;
+  int32_t v = 1;
 
-  if (v < 0) { // forward speed
+  if (s.data < 0) { // forward speed
     digitalWrite(RIGHT_DIR, HIGH);
     pwmWrite(RIGHT_STEP_PIN, HALF_DUTY_CYCLE);
-  } else if (v > 0) { // reverse speed
+    v = - (int32_t) s.data;
+  } else if (s.data > 0) { // reverse speed
     digitalWrite(RIGHT_DIR, LOW);
     pwmWrite(RIGHT_STEP_PIN, HALF_DUTY_CYCLE);
+    v = (int32_t) s.data;
   } else { // Zero speed
+    digitalWrite(RIGHT_DIR, LOW); // Though not needed, set to low to save power
     pwmWrite(RIGHT_STEP_PIN, ZERO_DUTY_CYCLE);
+    v = 1; // Frequency cannot be 0 Hz
   }
   bool success = SetPinFrequencySafe(RIGHT_STEP_PIN, v);
-  //  nh.loginfo("R_CB: ");
+  if (!success) {
+    nh.logerror("R_CB fail"); // Display 
+  }
 }
 
 ros::Subscriber<std_msgs::Int32> sub_left("left_motor_hz", &left_motor_speed_callback );
